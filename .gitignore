@@ -1,0 +1,5 @@
+*.swp
+animations/
+__pycache__
+venv/
+.idea/
