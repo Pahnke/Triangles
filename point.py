@@ -7,10 +7,11 @@ class Point:
             coord=None,
             partners=None,
             step=0.25,
-            error_radius = 1.0,
-            flip_triangle_rate=0.02,
-            allowed_closeness = 4.0,
-            stepping_error = 0.3):
+            error_radius = 0.0,
+            flip_triangle_rate=0.0,
+            allowed_closeness = 7.5,
+            stepping_error = 0.0,
+            verbose=False):
 
         self.num = num
         self.set_partners(partners)
@@ -28,6 +29,8 @@ class Point:
         self.flip_triangle_rate = flip_triangle_rate
         self.top_triangle = False
         # Points can only be allowed_closeness to another point
+        # This is used for finding the spot the point wants to be at
+        # and is currently ignored when the point is moving (TODO)
         self.allowed_closeness = allowed_closeness
         # If a point is too close to another point,
         # this is the step it takes to try to move away from it
@@ -36,8 +39,10 @@ class Point:
         # section = [boundary_coord]
         # boundary_coord = Bool: has_to_be_greater_than,
         # coord[0], coord[1], ...
-        # On the boundary is fine
+        # On the boundary is allowed
         self.bounds = [[[True, 0.0, 0.0], [False, 100.0, 100.0]]]
+        # Print debugging info
+        self.verbose = verbose
 
 
     def set_coord(self, coord):
@@ -78,8 +83,9 @@ class Point:
 
         self._set_ideal_spot(new_points)
 
-        print(f"\nID: {self.num}")
-        print(f"True Ideal: {self.ideal_spot}")
+        if self.verbose:
+            print(f"\nID: {self.num}")
+            print(f"True Ideal: {self.ideal_spot}")
 
         # Makes it so ideal spot is a valid spot
         # While moving to the ideal spot, points may move over
@@ -91,18 +97,21 @@ class Point:
             if attempts == 0 or attempts == 1:
                 self._flip()
                 self._set_ideal_spot(new_points)
-                print(f"Spot after flip: {self.ideal_spot}")
+                if self.verbose:
+                    print(f"Spot after flip: {self.ideal_spot}")
             else:
                 try:
                     self.ideal_spot = self._fix_spot(
                             self.ideal_spot, new_points)
-                    print(f"Spot after fixing: {self.ideal_spot}")
+                    if self.verbose:
+                        print(f"Spot after fixing: {self.ideal_spot}")
 
                 except RecursionError:
                     self.ideal_spot = self._random_spot(
                             len(self.ideal_spot),
                             new_points)
-                    print(f"Recursion Error, rand spot: {self.ideal_spot}")
+                    if self.verbose:
+                        print(f"Recursion Error, rand spot: {self.ideal_spot}")
             attempts += 1
 
         self._step_to_point()
